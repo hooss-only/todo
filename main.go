@@ -1,10 +1,13 @@
 package main
 
-import "fmt"
-import "os"
+import (
+	"fmt"
+	"os"
+	"strings"
+)
 
 type command struct {
-	name				string
+	name        string
 	description string
 }
 
@@ -14,17 +17,27 @@ func main() {
 
 	if len(args) == 1 {
 		/* No Arguments */
-		fmt.Println("It's cli todo program by hooss-only\n");
-		fmt.Println("Usage:\n\ttodo <command> [args..]\n");
-	
+		fmt.Printf("It's cli todo program by hooss-only\n\n")
+		fmt.Printf("Usage:\n\ttodo <command> [args..]\n\n")
+
 		fmt.Println("Commands:")
 		for _, cmd := range commands {
-			fmt.Println("\t"+cmd.name, "|", cmd.description);
+			fmt.Println("\t"+cmd.name, "|", cmd.description)
 		}
 		fmt.Println("")
 	} else {
-		commandNames := [...]string{}
+		existsCommand := false
+		command := strings.ToLower(args[1])
 
+		for _, cmd := range commands {
+			if cmd.name == command {
+				existsCommand = true
+			}
+		}
 
+		if !existsCommand {
+			fmt.Println(command + ": unknown command")
+			return
+		}
 	}
 }
