@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/list"
 	"fmt"
 	"os"
 	"strings"
@@ -9,35 +10,81 @@ import (
 type command struct {
 	name        string
 	description string
+	usage       string
 }
 
-func main() {
-	commands := [...]command{{name: "help", description: "give helps about commands"}, {name: "add", description: "add new todo"}}
-	args := os.Args
+type todo struct {
+	id    int
+	todo  string
+	check bool
+}
 
-	if len(args) == 1 {
-		/* No Arguments */
-		fmt.Printf("It's cli todo program by hooss-only\n\n")
+var commands = [...]command{
+	{name: "help", description: "give helps about commands", usage: "todo help [command]"},
+	{name: "add", description: "add new todo", usage: "todo add <to-do>"},
+}
+
+var todos = list.New()
+
+func help(args []string) {
+	if len(args) == 2 {
 		fmt.Printf("Usage:\n\ttodo <command> [args..]\n\n")
 
 		fmt.Println("Commands:")
-		for _, cmd := range commands {
-			fmt.Println("\t"+cmd.name, "|", cmd.description)
+		for _, c := range commands {
+			fmt.Println("\t"+c.name, "|", c.description)
 		}
 		fmt.Println("")
 	} else {
-		existsCommand := false
-		command := strings.ToLower(args[1])
+		findingCommand := args[2]
+		var cmd command
 
-		for _, cmd := range commands {
-			if cmd.name == command {
+		existsCommand := false
+
+		for _, c := range commands {
+			if c.name == findingCommand {
+				cmd = c
 				existsCommand = true
 			}
 		}
 
 		if !existsCommand {
-			fmt.Println(command + ": unknown command")
+			fmt.Printf("%s: unknown command.\n", findingCommand)
 			return
+		}
+
+		fmt.Printf("\n%s\n\t%s\n\t%s\n\n", cmd.name, cmd.description, cmd.usage)
+	}
+
+	return
+}
+
+func main() {
+	args := os.Args
+
+	if len(args) == 1 {
+		/* No Arguments */
+		fmt.Printf("\nIt's cli todo program by hooss-only\n\n")
+		help(args)
+	} else {
+		existsCommand := false
+		cmd := strings.ToLower(args[1])
+		for _, c := range commands {
+			if c.name == cmd {
+				existsCommand = true
+			}
+		}
+
+		if !existsCommand {
+			fmt.Println(cmd + ": unknown command")
+			return
+		}
+
+		switch cmd {
+		case "help":
+			help(args)
+		case "add":
+
 		}
 	}
 }
