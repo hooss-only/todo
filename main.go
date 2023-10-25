@@ -26,6 +26,7 @@ var commands = [...]command{
 	{name: "list", description: "show todo list", usage: "todo list"},
 	{name: "check", description: "check or uncheck a todo", usage: "todo check <id>"},
 	{name: "del", description: "delete todo", usage: "todo del <id> [id] [id] ... || todo del checked"},
+	{name: "reset", description: "reset todos and accumulated id amount", usage: "todo reset"},
 }
 
 var todos []todo
@@ -263,6 +264,9 @@ func main() {
 					}
 				}
 			}
+		case "reset":
+			latestId = 0
+			todos = []todo{}
 		}
 		save()
 	}
