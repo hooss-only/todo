@@ -25,6 +25,7 @@ var commands = [...]command{
 	{name: "add", description: "add new todo", usage: "todo add <to-do>"},
 	{name: "list", description: "show todo list", usage: "todo list"},
 	{name: "check", description: "check or uncheck a todo", usage: "todo check <id>"},
+	{name: "del", description: "delete todo", usage: "todo del <id> [id] [id] ... || todo del checked"},
 }
 
 var todos []todo
@@ -157,6 +158,11 @@ func getIndexById(id int) int {
 	return -1
 }
 
+func remove(s []todo, i int) []todo {
+	s[i] = s[len(s)-1]
+	return s[:len(s)-1]
+}
+
 func main() {
 	initFolderPath()
 
@@ -224,12 +230,38 @@ func main() {
 		case "check":
 			if len(args) != 3 {
 				fmt.Println(commands[3].usage)
+				return
 			} else {
 				id, err := strconv.Atoi(args[2])
 				errCheck(err)
 				index := getIndexById(id)
 
 				todos[index].check = !todos[index].check
+			}
+		case "del":
+			if len(args) < 3 {
+				fmt.Println(commands[4].usage)
+				return
+			} else {
+				if args[2] == "checked" {
+					var ids []int
+
+					for _, ctx := range todos {
+						if ctx.check {
+							ids = append(ids, ctx.id)
+						}
+					}
+
+					for _, id := range ids {
+						todos = remove(todos, getIndexById(id))
+					}
+				} else {
+					for _, ctx := range args[2:] {
+						id, err := strconv.Atoi(ctx)
+						errCheck(err)
+						todos = remove(todos, getIndexById(id))
+					}
+				}
 			}
 		}
 		save()
