@@ -24,6 +24,7 @@ var commands = [...]command{
 	{name: "help", description: "give helps about commands", usage: "todo help [command]"},
 	{name: "add", description: "add new todo", usage: "todo add <to-do>"},
 	{name: "list", description: "show todo list", usage: "todo list"},
+	{name: "check", description: "check or uncheck a todo", usage: "todo check <id>"},
 }
 
 var todos []todo
@@ -147,6 +148,15 @@ func load() {
 	}
 }
 
+func getIndexById(id int) int {
+	for idx, ctx := range todos {
+		if ctx.id == id {
+			return idx
+		}
+	}
+	return -1
+}
+
 func main() {
 	initFolderPath()
 
@@ -210,6 +220,16 @@ func main() {
 				}
 
 				fmt.Printf("[%d] [%s]      %s\n", ctx.id, checkText, ctx.todo)
+			}
+		case "check":
+			if len(args) != 3 {
+				fmt.Println(commands[3].usage)
+			} else {
+				id, err := strconv.Atoi(args[2])
+				errCheck(err)
+				index := getIndexById(id)
+
+				todos[index].check = !todos[index].check
 			}
 		}
 		save()
