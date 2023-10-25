@@ -65,9 +65,7 @@ func help(args []string) {
 
 func getHome() {
 	dirname, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Println(err)
-	}
+	errCheck(err)
 	homeFolder = dirname
 }
 
@@ -86,7 +84,20 @@ func checkFolder() bool {
 		}
 		return false
 	}
+	if _, err := os.Stat(configFolder + "save.txt"); os.IsNotExist(err) {
+		data := []byte("0")
+		err := os.WriteFile(configFolder+"save.txt", data, 0644)
+		errCheck(err)
+		return false
+	}
 	return true
+}
+
+func errCheck(err error) {
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
 }
 
 func save() {
@@ -98,9 +109,31 @@ func save() {
 
 	data := []byte(dataString)
 	err := os.WriteFile(configFolder+"save.txt", data, 0644)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	errCheck(err)
+}
+
+func load() {
+	data, err := os.ReadFile(configFolder + "save.txt")
+	errCheck(err)
+	dataString := string(data)
+
+	for idx, context := range strings.Split(dataString, "\n") {
+		if idx == 0 {
+			latestId, err = strconv.Atoi(context)
+			errCheck(err)
+		} else {
+			todoSplit := strings.Split(context, ",")
+
+			id, err := strconv.Atoi(todoSplit[0])
+			errCheck(err)
+
+			todoText := todoSplit[1]
+
+			check, err := strconv.ParseBool(todoSplit[2])
+			errCheck(err)
+
+			todos = append(todos, todo{id: id, todo: todoText, check: check})
+		}
 	}
 }
 
@@ -108,6 +141,8 @@ func main() {
 	if !checkFolder() {
 		checkFolder()
 	}
+
+	load()
 
 	args := os.Args
 
@@ -149,8 +184,7 @@ func main() {
 			}
 
 			todos = append(todos, todo{id: latestId, todo: todoText, check: false})
-
-			fmt.Println(todos)
 		}
+		save()
 	}
 }
