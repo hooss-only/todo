@@ -23,12 +23,13 @@ type todo struct {
 var commands = [...]command{
 	{name: "help", description: "give helps about commands", usage: "todo help [command]"},
 	{name: "add", description: "add new todo", usage: "todo add <to-do>"},
+	{name: "list", description: "show todo list", usage: "todo list"},
 }
 
 var todos []todo
 var latestId = 0
 var homeFolder string
-var configFolder = homeFolder + ".config/todos-only/"
+var configFolder string
 
 func help(args []string) {
 	if len(args) <= 2 {
@@ -63,30 +64,35 @@ func help(args []string) {
 	return
 }
 
-func getHome() {
+func initFolderPath() {
 	dirname, err := os.UserHomeDir()
 	errCheck(err)
 	homeFolder = dirname
+	configFolder = homeFolder + "/.config/todos-only/"
 }
 
 func checkFolder() bool {
-	if _, err := os.Stat(homeFolder + ".config"); os.IsNotExist(err) {
-		if err := os.Mkdir(homeFolder+".config", os.ModePerm); err != nil {
+	if _, err := os.Stat(homeFolder + "/.config"); os.IsNotExist(err) {
+		if err := os.Mkdir(homeFolder+"/.config", os.ModePerm); err != nil {
 			log.Fatal(err)
 			os.Exit(1)
 		}
 		return false
 	}
-	if _, err := os.Stat(homeFolder + ".config/todos-only"); os.IsNotExist(err) {
-		if err := os.Mkdir(homeFolder+".config/todos-only", os.ModePerm); err != nil {
+	if _, err := os.Stat(homeFolder + "/.config/todos-only"); os.IsNotExist(err) {
+		if err := os.Mkdir(homeFolder+"/.config/todos-only", os.ModePerm); err != nil {
 			log.Fatal(err)
 			os.Exit(1)
 		}
 		return false
 	}
 	if _, err := os.Stat(configFolder + "save.txt"); os.IsNotExist(err) {
+		file, err := os.Create(configFolder + "save.txt")
+		errCheck(err)
+		defer file.Close()
+
 		data := []byte("0")
-		err := os.WriteFile(configFolder+"save.txt", data, 0644)
+		err = os.WriteFile(configFolder+"save.txt", data, 0644)
 		errCheck(err)
 		return false
 	}
@@ -124,6 +130,10 @@ func load() {
 		} else {
 			todoSplit := strings.Split(context, ",")
 
+			if len(todoSplit) == 1 {
+				return
+			}
+
 			id, err := strconv.Atoi(todoSplit[0])
 			errCheck(err)
 
@@ -138,6 +148,8 @@ func load() {
 }
 
 func main() {
+	initFolderPath()
+
 	if !checkFolder() {
 		checkFolder()
 	}
@@ -184,6 +196,21 @@ func main() {
 			}
 
 			todos = append(todos, todo{id: latestId, todo: todoText, check: false})
+		case "list":
+			if len(todos) == 0 {
+				fmt.Println("its too clean")
+			}
+			for _, ctx := range todos {
+				checkText := ""
+
+				if ctx.check {
+					checkText = "✓"
+				} else {
+					checkText = " "
+				}
+
+				fmt.Printf("[%d] [%s]      %s\n", ctx.id, checkText, ctx.todo)
+			}
 		}
 		save()
 	}
