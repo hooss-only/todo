@@ -179,6 +179,7 @@ func main() {
 		/* No Arguments */
 		fmt.Printf("\nIt's cli todo program by hooss-only\n\n")
 		help(args)
+		fmt.Printf("todos-only Copyright (C) 2023 Changmin Jung\n\n")
 	} else {
 		existsCommand := false
 		cmd := strings.ToLower(args[1])
